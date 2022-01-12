@@ -52,13 +52,13 @@ for batch in target:
 
 source_X = np.array(source_X)
 source_X = np.reshape(source_X, (60000, 28*28))
-source_X = np.repeat(source_X, 3, axis = 1)
+source_X = np.repeat(source_X, CHANNELS, axis = 1)
 source_Y = np.array(source_Y)
 
 target_X = np.array(target_X)
-target_X = np.reshape(target_X, (60000, 28*28*3))
+target_X = np.reshape(target_X, (60000, 28*28*CHANNELS))
 
-dann = DANN(max_iter = 5)
+dann = DANN(max_iter = 10)
 dann.train(source_X, source_Y, target_X)
 
 ### test accuracy
@@ -71,7 +71,7 @@ for batch in test:
     test_Y.extend(batch[1])
 
 test_X = np.array(test_X)
-test_X = np.reshape(test_X, (10000, 28*28*3))
+test_X = np.reshape(test_X, (10000, 28*28*CHANNELS))
 test_Y = np.array(test_Y)
 
 # note that successful predictions will have a
@@ -83,5 +83,5 @@ num_input = len(test_Y)
 num_success = np.count_nonzero(diffs == 0)
 print("Number of successful predictions: {}".format(num_success))
 print("Number of unsuccessful predictions: {}".format(num_input - num_success))
-print("Overall accuracy: {}%".format(num_success / num_input))
+print("Overall accuracy: {}%".format(num_success / num_input * 100))
 
