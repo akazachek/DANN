@@ -3,7 +3,7 @@ from itertools import repeat
 
 class DANN(object):
 
-    def __init__(self, learning_rate = 0.05, hidden_layer_size = 20, lambda_penalty = 0.5, max_iter = 200, seed = 123):
+    def __init__(self, learning_rate = 0.05, hidden_layer_size = 20, lambda_penalty = 0.5, max_iter = 100, seed = 123):
         self.learning_rate = learning_rate
         self.hidden_layer_size = hidden_layer_size
         self.lambda_penalty = lambda_penalty
@@ -53,10 +53,29 @@ class DANN(object):
     def predict_label(self, x):
         """
             computes composition of layers (G_y o G_f) and returns the
-            matrix of one-hot (1 x L) vectors representing predicted labels.
+            one-hot (1 x L) vector representing predicted label.
         """
         predictive_layer = self.predictive_layer(self.hidden_layer(x))
         return np.argmax(predictive_layer)
+
+    def predict_labels(self, X):
+        """
+            computes composition of layers (G_y o G_f) and returns matrix
+            of of one-hot (1 x L) vectors representing predicted labels.
+        """
+        # note that transposes are required as this takes in a matrix, not a vector.
+        # moreover, the intercepts must be translated to row vectors via newaxis.
+        print(X)
+        print(np.shape(X))
+        print(np.shape(self.W))
+        hidden_vectors = self.sigm(self.W @ X.T + self.b[:,np.newaxis])
+        print(hidden_vectors)
+        print(np.shape(hidden_vectors))
+        print(np.shape(self.V))
+        predicted_vectors = self.softmax(self.V @ hidden_vectors + self.c[:,np.newaxis])
+        print(predicted_vectors)
+        print(np.shape(predicted_vectors))
+        return np.argmax(predicted_vectors, 0)
 
     def domain_regressor(self, x):
         """
@@ -87,8 +106,6 @@ class DANN(object):
         num_input, num_features = np.shape(X)
         num_target = np.shape(X_target)[0]
 
-        print(num_features)
-
         # initialize random weights and intercepts
         np.random.seed(self.seed)
         self.W = self.random_init(self.hidden_layer_size, num_features)
@@ -103,19 +120,20 @@ class DANN(object):
         # one-hot vector is the (1xL) vector consisting of 0
         # everywhere except for a 1 in the y_i-th place.
         one_hots = np.zeros((num_input, num_labels))
-        one_hots[:,Y] = 1.
-        ### NEED TO FIX
+        for i in range(num_input): one_hots[i,Y[i]] = 1.
+        # surely this can be vectorized ?
+
+        
+        # shorthands for transcription of algorithm    
+        W = self.W
+        b = self.b
+        V = self.V
+        u = self.u
+        lm = self.lambda_penalty
 
         for _ in repeat(None, self.max_iter):
             for i in range(num_input):
 
-                # shorthands for transcription of algorithm
-                W = self.W
-                b = self.b
-                V = self.V
-                u = self.u
-                lm = self.lambda_penalty
-                
                 x_i = X[i,:]
                 e_i = one_hots[i,:]
                 hidden_vector = self.hidden_layer(x_i)

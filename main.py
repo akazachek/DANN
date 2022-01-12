@@ -57,5 +57,31 @@ source_Y = np.array(source_Y)
 target_X = np.array(target_X)
 target_X = np.reshape(target_X, (52500, 84))
 
-dann = DANN()
+dann = DANN(max_iter = 1)
 dann.train(source_X, source_Y, target_X)
+
+# test accuracy
+
+test_X = []
+test_Y = []
+
+iter = tf.data.Dataset.as_numpy_iterator(test)
+for pair in iter:
+    test_X.extend(pair[0][0])
+    test_Y.extend(pair[1])
+
+test_X = np.array(test_X)
+test_X = np.reshape(test_X, (8764, 84))
+test_Y = np.array(test_Y)
+
+# note that successful predictions will have a
+# difference of zero
+predictions = dann.predict_labels(test_X)
+diffs = predictions - test_Y
+
+num_input = len(test_Y)
+num_success = np.count_nonzero(diffs == 0)
+print("Number of successful predictions: {}".format(num_success))
+print("Number of unsuccessful predictions: {}".format(num_input - num_success))
+print("Overall accuracy: {}%".format(num_success / num_input))
+
