@@ -3,7 +3,7 @@ from itertools import repeat
 
 class DANN(object):
 
-    def __init__(self, learning_rate = 0.05, hidden_layer_size = 20, lambda_penalty = 0.5, max_iter = 100, seed = 123):
+    def __init__(self, learning_rate = 0.05, hidden_layer_size = 20, lambda_penalty = 0.1, max_iter = 100, seed = 123):
         self.learning_rate = learning_rate
         self.hidden_layer_size = hidden_layer_size
         self.lambda_penalty = lambda_penalty
@@ -65,16 +65,8 @@ class DANN(object):
         """
         # note that transposes are required as this takes in a matrix, not a vector.
         # moreover, the intercepts must be translated to row vectors via newaxis.
-        print(X)
-        print(np.shape(X))
-        print(np.shape(self.W))
         hidden_vectors = self.sigm(self.W @ X.T + self.b[:,np.newaxis])
-        print(hidden_vectors)
-        print(np.shape(hidden_vectors))
-        print(np.shape(self.V))
         predicted_vectors = self.softmax(self.V @ hidden_vectors + self.c[:,np.newaxis])
-        print(predicted_vectors)
-        print(np.shape(predicted_vectors))
         return np.argmax(predicted_vectors, 0)
 
     def domain_regressor(self, x):
